@@ -2,10 +2,52 @@
 
 Rest API which aims at keeping track of newly provisioned systems.
 The following auto-actions are performed:
-- schedule the Qualys vulnerability scan 
+- save new assets's information into the local database;
+- schedule the Qualys vulnerability scan;
 - verify if Splunk universal forwarder is installed and registered in one of the Splunk Deployment servers.
 
-Installation steps for Debian
+## Usage
+
+### Information that should be submitted in the form of JSON:
+
+| Field | Description |
+| --- | --- |
+| name | short name of the system |
+| network | IPv4 address of the system |
+| owner | Email address of the owner of asset, this address will be used to send Security-related requests |
+| builder | Email address of the responsible person who built the system. Initial vulnerability scan report is sent to it |
+| timestamp | Timestamp when the system got provisioned. Format: `YYYY-MM-DD HH:MM` |
+| location | Short annotation of the system's location |
+| template | Name of the template used to provision system, it should include the OS name |
+
+### Invocation example
+
+New asset is being saved into the database:
+
+```bash
+curl --request POST https://securityinventory.local/assets/api/newserver \
+--header "Authorization: $APITOKEN" --header "Account-ID: assetsapi" --header "Content-Type: application/json"  \
+--data \
+"
+{
+\"name\":\"K8S-MGMT\",
+\"network\":\"10.10.22.11\",
+\"owner\":\"pe@company.com\",
+\"builder\":\"john@company\",
+\"timestamp\":\"2019-02-25 12:12\",
+\"location\":\"Virginia datacenter\",
+\"template\":\"Debian 9 x86-64\"
+}"
+```
+
+API replies with JSON:
+
+```
+{"asset_saved": "True", "aux_checks": [{"vulnerability_scan": "5c755ada29c81f3d5abd548d", "registered_in_splunk": "True", "performed": "True"}]}
+```
+
+
+## Installation steps for Debian
 
 ```bash
 # Update/Upgrade server
